@@ -1,0 +1,99 @@
+pipeline {
+    agent any
+
+    environment {
+        // Add environment variables if needed, like AWS credentials.
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                    echo 'Building the project...'
+                    sh 'mvn clean install'
+                }
+            }
+        }
+
+        stage('Unit and Integration Tests') {
+            steps {
+                script {
+                    echo 'Running unit and integration tests...'
+                    sh 'mvn test'
+                }
+            }
+        }
+
+        stage('Code Analysis') {
+            steps {
+                script {
+                    echo 'Running SonarQube analysis...'
+                    withSonarQubeEnv('My SonarQube Server') {
+                        sh 'mvn sonar:sonar'
+                    }
+                }
+            }
+        }
+
+        stage('Security Scan') {
+            steps {
+                script {
+                    echo 'Running security scan...'
+                    sh 'mvn org.owasp:dependency-check-maven:check'
+                }
+            }
+        }
+
+        stage('Deploy to Staging') {
+            steps {
+                script {
+                    echo 'Deploying to staging...'
+                    sh 'ansible-playbook -i inventory/staging deploy.yml'
+                }
+            }
+        }
+
+        stage('Integration Tests on Staging') {
+            steps {
+                script {
+                    echo 'Running integration tests on staging...'
+                    sh 'mvn verify -Dtest=*IntegrationTest'
+                }
+            }
+        }
+
+        stage('Deploy to Production') {
+            steps {
+                script {
+                    echo 'Deploying to production...'
+                    sh 'ansible-playbook -i inventory/production deploy.yml'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                echo 'Cleaning up workspace...'
+                cleanWs()
+            }
+        }
+        success {
+            emailext (
+                to: 'your-email@example.com',
+                subject: "Jenkins Build Success: ${currentBuild.fullDisplayName}",
+                body: "Good news! The build for ${env.JOB_NAME} completed successfully.\n\nCheck the console output at ${env.BUILD_URL} to view the results.",
+                attachLog: true
+            )
+        }
+        failure {
+            emailext (
+                to: 'your-email@example.com',
+                subject: "Jenkins Build Failed: ${currentBuild.fullDisplayName}",
+                body: "Unfortunately, the build for ${env.JOB_NAME} has failed.\n\nCheck the console output at ${env.BUILD_URL} to view the details.",
+                attachLog: true
+            )
+        }
+    }
+}
