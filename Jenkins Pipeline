@@ -1,44 +1,82 @@
 pipeline {
     agent any
-    
+
+    triggers {
+        pollSCM('H/2 * * * *')
+    }
+
     stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/MichaelMcT94/Task-6.1C.git'
+            }
+        }
         stage('Build') {
             steps {
-                echo 'Building code with Maven...'
+                echo 'Building code with Maven'
             }
         }
         stage('Unit and Integration Tests') {
             steps {
-                echo 'Running unit tests with JUnit...'
-                echo 'Running integration tests with TestNG...'
+                echo 'Running unit tests with JUnit'
+                echo 'Running integration tests with TestNG'
+            }
+            post {
+                success {
+                    emailext to: 'm.mctackett@gmail.com',
+                            subject: 'Unit and Integration Tests Successful',
+                            body: 'The unit and integration tests have completed successfully.',
+                            attachLog: true
+                }
+                failure {
+                    emailext to: 'm.mctackett@gmail.com',
+                            subject: 'Unit and Integration Tests Failed',
+                            body: 'The unit and integration tests have failed. Please check the logs.',
+                            attachLog: true
+                }
             }
         }
         stage('Code Analysis') {
             steps {
-                echo 'Analyzing code with SonarQube...'
+                echo 'Analyzing code with SonarQube'
             }
         }
         stage('Security Scan') {
             steps {
-                echo 'Performing security scan with OWASP ZAP...'
+                echo 'Performing security scan with OWASP ZAP'
+            }
+            post {
+                success {
+                    emailext to: 'm.mctackett@gmail.com',
+                            subject: 'Security Scan Successful',
+                            body: 'The security scan has completed successfully.',
+                            attachLog: true
+                }
+                failure {
+                    emailext to: 'm.mctackett@gmail.com',
+                            subject: 'Security Scan Failed',
+                            body: 'The security scan has failed. Please check the logs.',
+                            attachLog: true
+                }
             }
         }
         stage('Deploy to Staging') {
             steps {
-                echo 'Deploying application to staging server...'
+                echo 'Deploying application to AWS staging server'
             }
         }
         stage('Integration Tests on Staging') {
             steps {
-                echo 'Running integration tests on staging environment...'
+                echo 'Running integration tests on staging environment'
             }
         }
         stage('Deploy to Production') {
             steps {
-                echo 'Deploying application to production server...'
+                echo 'Deploying application to AWS production server'
             }
         }
     }
+
     post {
         success {
             emailext to: 'm.mctackett@gmail.com',
@@ -51,6 +89,9 @@ pipeline {
                     subject: 'Pipeline Failed',
                     body: 'The pipeline has failed. Please check the logs.',
                     attachLog: true
+        }
+        always {
+            echo 'Pipeline finished'
         }
     }
 }
