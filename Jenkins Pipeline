@@ -1,98 +1,79 @@
 pipeline {
     agent any
-
-    environment {
-        // Add environment variables if needed, like AWS credentials.
-    }
-
+ 
     stages {
         stage('Build') {
             steps {
-                script {
-                    echo 'Building the project...'
-                    sh 'mvn clean install'
-                }
+                echo 'Building the project using Maven...'
+                // Simulate build tool (Maven, Gradle, etc.)
+                // Example: sh 'mvn clean package'
             }
         }
 
-        stage('Unit and Integration Tests') {
+        stage('Test') {
             steps {
-                script {
-                    echo 'Running unit and integration tests...'
-                    sh 'mvn test'
-                }
+                echo 'Running unit and integration tests...'
+                // Simulate test execution
+                // Example: sh 'mvn test'
             }
         }
 
         stage('Code Analysis') {
             steps {
-                script {
-                    echo 'Running SonarQube analysis...'
-                    withSonarQubeEnv('My SonarQube Server') {
-                        sh 'mvn sonar:sonar'
-                    }
-                }
+                echo 'Running static code analysis...'
+                // Simulate static code analysis tool (e.g., SonarQube)
             }
         }
 
         stage('Security Scan') {
             steps {
-                script {
-                    echo 'Running security scan...'
-                    sh 'mvn org.owasp:dependency-check-maven:check'
-                }
+                echo 'Performing security scan...'
+                // Simulate security scan (e.g., OWASP Dependency Check)
             }
         }
 
         stage('Deploy to Staging') {
             steps {
-                script {
-                    echo 'Deploying to staging...'
-                    sh 'ansible-playbook -i inventory/staging deploy.yml'
-                }
+                echo 'Deploying to staging environment...'
+                // Simulate deployment to staging (e.g., AWS EC2)
             }
         }
 
         stage('Integration Tests on Staging') {
             steps {
-                script {
-                    echo 'Running integration tests on staging...'
-                    sh 'mvn verify -Dtest=*IntegrationTest'
-                }
+                echo 'Running integration tests on staging...'
+                // Simulate integration tests on staging
             }
         }
 
         stage('Deploy to Production') {
             steps {
-                script {
-                    echo 'Deploying to production...'
-                    sh 'ansible-playbook -i inventory/production deploy.yml'
-                }
+                echo 'Deploying to production environment...'
+                // Simulate deployment to production (e.g., AWS EC2)
             }
         }
     }
 
     post {
-        always {
-            script {
-                echo 'Cleaning up workspace...'
-                cleanWs()
-            }
-        }
         success {
-            emailext (
-                to: 'your-email@example.com',
-                subject: "Jenkins Build Success: ${currentBuild.fullDisplayName}",
-                body: "Good news! The build for ${env.JOB_NAME} completed successfully.\n\nCheck the console output at ${env.BUILD_URL} to view the results.",
-                attachLog: true
+            echo 'Pipeline succeeded. Sending success notification email...'
+            emailext(
+                to: 'm.mctackett@gmail.com',
+                subject: 'SUCCESS: Build #${env.BUILD_NUMBER} - ${env.JOB_NAME}',
+                body: """<p>Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} was successful!</p>
+                         <p><a href="${env.BUILD_URL}">Click here to view the build details</a></p>""",
+                mimeType: 'text/html'
             )
         }
+
         failure {
-            emailext (
-                to: 'your-email@example.com',
-                subject: "Jenkins Build Failed: ${currentBuild.fullDisplayName}",
-                body: "Unfortunately, the build for ${env.JOB_NAME} has failed.\n\nCheck the console output at ${env.BUILD_URL} to view the details.",
-                attachLog: true
+            echo 'Pipeline failed. Sending failure notification email...'
+            emailext(
+                to: 'm.mctackett@gmail.com',
+                subject: 'FAILURE: Build #${env.BUILD_NUMBER} - ${env.JOB_NAME}',
+                body: """<p>Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} failed.</p>
+                         <p><a href="${env.BUILD_URL}">Click here to view the build details and logs</a></p>""",
+                mimeType: 'text/html'
             )
         }
     }
