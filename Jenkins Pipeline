@@ -1,80 +1,56 @@
 pipeline {
     agent any
- 
+    
     stages {
         stage('Build') {
             steps {
-                echo 'Building the project using Maven...'
-                // Simulate build tool (Maven, Gradle, etc.)
-                // Example: sh 'mvn clean package'
+                echo 'Building code with Maven...'
             }
         }
-
-        stage('Test') {
+        stage('Unit and Integration Tests') {
             steps {
-                echo 'Running unit and integration tests...'
-                // Simulate test execution
-                // Example: sh 'mvn test'
+                echo 'Running unit tests with JUnit...'
+                echo 'Running integration tests with TestNG...'
             }
         }
-
         stage('Code Analysis') {
             steps {
-                echo 'Running static code analysis...'
-                // Simulate static code analysis tool (e.g., SonarQube)
+                echo 'Analyzing code with SonarQube...'
             }
         }
-
         stage('Security Scan') {
             steps {
-                echo 'Performing security scan...'
-                // Simulate security scan (e.g., OWASP Dependency Check)
+                echo 'Performing security scan with OWASP ZAP...'
             }
         }
-
         stage('Deploy to Staging') {
             steps {
-                echo 'Deploying to staging environment...'
-                // Simulate deployment to staging (e.g., AWS EC2)
+                echo 'Deploying application to staging server...'
             }
         }
-
         stage('Integration Tests on Staging') {
             steps {
-                echo 'Running integration tests on staging...'
-                // Simulate integration tests on staging
+                echo 'Running integration tests on staging environment...'
             }
         }
-
         stage('Deploy to Production') {
             steps {
-                echo 'Deploying to production environment...'
-                // Simulate deployment to production (e.g., AWS EC2)
+                echo 'Deploying application to production server...'
             }
         }
     }
-
     post {
         success {
-            echo 'Pipeline succeeded. Sending success notification email...'
-            emailext(
-                to: 'm.mctackett@gmail.com',
-                subject: 'SUCCESS: Build #${env.BUILD_NUMBER} - ${env.JOB_NAME}',
-                body: """<p>Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} was successful!</p>
-                         <p><a href="${env.BUILD_URL}">Click here to view the build details</a></p>""",
-                mimeType: 'text/html'
-            )
+            emailext to: 'm.mctackett@gmail.com',
+                    subject: 'Pipeline Successful',
+                    body: 'The pipeline has completed successfully.',
+                    attachLog: true
         }
-
         failure {
-            echo 'Pipeline failed. Sending failure notification email...'
-            emailext(
-                to: 'm.mctackett@gmail.com',
-                subject: 'FAILURE: Build #${env.BUILD_NUMBER} - ${env.JOB_NAME}',
-                body: """<p>Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} failed.</p>
-                         <p><a href="${env.BUILD_URL}">Click here to view the build details and logs</a></p>""",
-                mimeType: 'text/html'
-            )
+            emailext to: 'm.mctackett@gmail.com',
+                    subject: 'Pipeline Failed',
+                    body: 'The pipeline has failed. Please check the logs.',
+                    attachLog: true
         }
     }
 }
